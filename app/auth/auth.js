@@ -1,9 +1,15 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local');
+const LocalStrategy = require('passport-local').Strategy;
+const jwt = require('jsonwebtoken');
+const JWTStrategy = require('passport-jwt').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
+
 const User = require('../models/User');
+require('dotenv').config();
 
 // Sign Up
-passport.use('signup',
+passport.use(
+    'signup',
     new LocalStrategy(
         {
             usernameField: 'email',
@@ -37,7 +43,7 @@ passport.use('login',
         },
         async (req, email, password, done) => {
             try {
-                const user = await User.findOne({'email': email});
+                let user = await User.findOne({'email': email});
 
                 if (!user)
                     return done(null, false, {message: 'User not found'});
@@ -47,9 +53,31 @@ passport.use('login',
                 if (!validate)
                     return done(null, false, {message: 'Wrong Password'});
 
-                return done(null, user, {message: 'Logged in Successfully'});
+                const body = {_id: user._id, email: user.email};
+                const token = jwt.sign({user: body}, process.env.JWT_TOP_SECRET);
+
+                // user = {...user, token: token};
+
+                return done(null, token, { message: 'Logged in Successfully'});
             } catch (err) {
                 return done(err);
+            }
+        }
+    )
+);
+
+//JWT
+passport.use(
+    new JWTStrategy(
+        {
+            secretOrKey: process.env.JWT_TOP_SECRET,
+            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken()
+        },
+        async (token, done) => {
+            try {
+                return done(null, token.user);
+            } catch (err) {
+                done(err);
             }
         }
     )

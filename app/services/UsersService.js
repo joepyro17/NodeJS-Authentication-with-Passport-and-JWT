@@ -26,4 +26,4 @@ getAllUser = async () => {
 //     }
 // };
 
-module.exports = { getAllUser, createNewUser };
+module.exports = { getAllUser };

@@ -1,16 +1,12 @@
 const express = require('express');
 const passport = require('passport');
-const usersController = require('../controllers/UsersController');
+
 const router = express.Router();
 
-// Users
-// Get all users
-router.get('/api/users', usersController.index);
-// Create a new user
-router.post('/api/users', usersController.store);
+
 // Sign Up a new user
 router.post(
-    '/api/signup',
+    '/signup',
     passport.authenticate('signup', { session: false }),
     ((req, res, next) => {
         res.send(req.user);
@@ -18,10 +14,10 @@ router.post(
 );
 // Login
 router.post(
-    '/api/login',
+    '/login',
     passport.authenticate('login',{ session: false }),
     ((req, res, next) => {
-        res.send('Login success');
+        res.send({success: true, body: {'token': req.user}});
     })
 );
 
